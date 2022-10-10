@@ -1,16 +1,36 @@
+# Docker
+# Build and push an image to Azure Container Registry
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
 trigger:
- - main
+- main
 
- pool:
- - vmImage: 'ubuntu-latest' 
+resources:
+- repo: self
 
- variables:
-   imageName: 'pipelines-javascript-docker'
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: 'bbc00546-6924-4a6f-981e-eb246a6761fb'
+  imageRepository: 'mydocimage1'
+  containerRegistry: 'devsecopscontainer212.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/app/Dockerfile'
+  tag: '$(Build.BuildId)'
 
- steps:
- - task: Docker@2
-   displayName: Build an image
-   inputs:
-     repository: $(imageName)
-     command: build
-     Dockerfile: app/Dockerfile
+  # Agent VM image name
+  imageName: 'pipelines-javascript-docker'
+
+stages:
+- stage: Build
+  displayName: Build and push stage
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: 'ubuntu-latest' 
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        repository: $(imageName)
+        command: build
+        Dockerfile: app/Dockerfile
